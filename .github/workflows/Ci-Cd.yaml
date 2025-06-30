@@ -1,0 +1,43 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Set up Kind (local Kubernetes)
+        uses: engineerd/setup-kind@v0.5
+        with:
+          version: v0.20.0
+
+      - name: Create Kind cluster
+        run: kind create cluster --name ci-cluster
+
+      - name: Configure kubeconfig
+        run: kind get kubeconfig --name ci-cluster > $HOME/.kube/config
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
+
+      - name: Wait for deployment
+        run: |
+          kubectl rollout status deployment/nginx-app --timeout=2m
+
+      - name: Smoke Test
+        run: |
+          NODE_PORT=$(terraform -chdir=terraform output -raw service_node_port)
+          curl --retry 5 --retry-delay 5 --fail http://127.0.0.1:${NODE_PORT} | grep "Hello from My Custom NGINX App!"

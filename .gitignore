@@ -1,0 +1,11 @@
+# Ignore IDE, OS files
+.DS_Store
+*.swp
+.vscode/
+
+# Terraform
+.terraform/
+terraform.tfstate*
+
+# Helm
+charts/nginx-app/templates/_helpers.tpl  
