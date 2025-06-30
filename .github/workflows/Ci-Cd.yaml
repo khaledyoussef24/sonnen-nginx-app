@@ -15,9 +15,9 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Set up Kind (local Kubernetes)
-        uses: engineerd/setup-kind@v0.5
+        uses: engineerd/setup-kind@v0.6.0
         with:
-          version: v0.20.0
+          version: "v0.24.0"
 
       - name: Create Kind cluster
         run: kind create cluster --name ci-cluster
